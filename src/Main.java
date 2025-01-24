@@ -1,7 +1,6 @@
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.Scanner;
+import java.util.*;
 
 public class Main {
     public static void main(String[] args) throws FileNotFoundException {
@@ -10,8 +9,11 @@ public class Main {
         ArrayList<String> splittedAdnTextList = splitStringIntoEqualsLengthString(adnText, 25);
         String splittedAdnText = splittedAdnTextList.toString();
         String proteinList = convertAdnToProtein(adnText).toString();
-        String adnSplittedToGroupsOf5 = splitAdnToGroupsOf5(splittedAdnTextList).toString();
-        System.out.println(adnSplittedToGroupsOf5);
+        ArrayList<ArrayList<ArrayList<String>>> adnSplittedToGroupsOf5 = splitAdnToGroupsOf5(splittedAdnTextList);
+        ArrayList<Map<String, String>> repeatedNucleotides = findRepeatedNucleotides(adnSplittedToGroupsOf5);
+
+        System.out.println(repeatedNucleotides.toString());
+
     }
 
     public static String readFile(String filePath) throws FileNotFoundException {
@@ -31,7 +33,7 @@ public class Main {
     }
 
     public static ArrayList<String> splitStringIntoEqualsLengthString(String stringToSplit, int desiredLength) {
-        ArrayList<String> equalsLengthStringsList = new ArrayList<String>();
+        ArrayList<String> equalsLengthStringsList = new ArrayList<>();
 
         for (int i = 0; i < stringToSplit.length(); i += desiredLength) {
             if (i + desiredLength <= stringToSplit.length()) {
@@ -62,7 +64,7 @@ public class Main {
             String adnString = listToSplit.get(i);
             ArrayList<String> iterativeStrings = splitStringIntoEqualsLengthString(adnString, 5);
 
-            for (String group: iterativeStrings) {
+            for (String group : iterativeStrings) {
                 ArrayList<String> adnGroupedBy5 = new ArrayList<>();
                 adnGroupedBy5.add(group);
                 groupsOf5.add(adnGroupedBy5);
@@ -70,5 +72,45 @@ public class Main {
             adnSequences.add(groupsOf5);
         }
         return adnSequences;
+    }
+
+    //Ne fonctionne pas, il semblerait que count ne soit pas mis à jour
+    public static ArrayList<Map<String, String>> findRepeatedNucleotides(ArrayList<ArrayList<ArrayList<String>>> adnSequences) {
+        ArrayList<Map<String, String>> repeatedNucleotides = new ArrayList<>();
+
+        for (ArrayList<ArrayList<String>> group : adnSequences) {
+            String[] nucleotides = {"A", "C", "G", "T"};
+            Map<String, int[]> counts = new HashMap<>();
+            counts.put("A", new int[]{0, 0, 0, 0, 0});
+            counts.put("C", new int[]{0, 0, 0, 0, 0});
+            counts.put("G", new int[]{0, 0, 0, 0, 0});
+            counts.put("T", new int[]{0, 0, 0, 0, 0});
+
+            for (ArrayList<String> sequence : group) {
+                for (int i = 0; i < sequence.size(); i++) {
+                    String nucleotide = sequence.get(i);
+                    if (counts.containsKey(nucleotide)) {
+                        counts.get(nucleotide)[i]++;
+                    }
+                }
+            }
+
+            Map<String, String> stringCounts = new HashMap<>();
+            for (String nucleotide : nucleotides) {
+                stringCounts.put(nucleotide, arrayToString(counts.get(nucleotide)));
+            }
+
+            repeatedNucleotides.add(stringCounts);
+        }
+
+        return repeatedNucleotides;
+    }
+
+    private static String arrayToString(int[] array) {
+        StringBuilder sb = new StringBuilder();
+        for (int count : array) {
+            sb.append(count).append(" ");
+        }
+        return sb.toString().trim();
     }
 }
